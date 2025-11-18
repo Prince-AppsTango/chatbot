@@ -1,6 +1,11 @@
 package com.app.chatbot.views
 
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,7 +64,17 @@ fun ChatScren(modifier: Modifier = Modifier, navHostController: NavHostControlle
     val chatViewModel: ChatViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     val chatMessages = chatViewModel.messages.collectAsState()
     val listState = rememberLazyListState()
-
+    val speechText = remember { mutableStateOf("Your speech will appear here.") }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            val data = it.data
+            val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            message.value = result?.get(0) ?: "No speech detected."
+        } else {
+            speechText.value = "[Speech recognition failed.]"
+        }
+    }
+    Log.d("SpeechText", "ChatScreen: ${speechText.value}")
     LaunchedEffect(chatMessages.value.size) {
         if (chatMessages.value.isNotEmpty()) {
             listState.animateScrollToItem(0)
@@ -164,6 +179,12 @@ fun ChatScren(modifier: Modifier = Modifier, navHostController: NavHostControlle
                                     if(message.value.isNotEmpty()) {
                                         chatViewModel.sendMessage(message.value)
                                         message.value = ""
+                                    }else{
+                                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                                        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                                        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Go on then, say something.")
+                                        launcher.launch(intent)
                                     }
                                 },modifier= Modifier.size(30.dp)) {
                                     if(message.value.isEmpty()){
