@@ -166,7 +166,15 @@ fun ChatScren(modifier: Modifier = Modifier, navHostController: NavHostControlle
                                         message.value = ""
                                     }
                                 },modifier= Modifier.size(30.dp)) {
-                                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = Color.White)
+                                    if(message.value.isEmpty()){
+                                        Image(painter = painterResource(id = R.drawable.voice), contentDescription = "Voice", modifier = Modifier.size(24.dp))
+                                    }else {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.Send,
+                                            contentDescription = null,
+                                            tint = Color.White
+                                        )
+                                    }
                                 }
                             }
                         }
